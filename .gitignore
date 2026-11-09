@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+dist/
+private.pem
+public.pem
+license.key
+*.pfx
+*.snk
