@@ -1,0 +1,32 @@
+name: Build Windows Installer
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish Admin
+        run: dotnet publish License.Admin/License.Admin.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o dist/admin
+      - name: Publish Client
+        run: dotnet publish License.Client/License.Client.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o dist/client
+      - name: Build installer with Inno Setup
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+          }
+          if (!(Test-Path $iscc)) { throw "Inno Setup compiler not found at $iscc" }
+          & $iscc "installer\JamesDev-ECU-License-V2.iss"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: JamesDev-ECU-License-V2-Installer
+          path: dist/installer/*.exe
+          if-no-files-found: error
