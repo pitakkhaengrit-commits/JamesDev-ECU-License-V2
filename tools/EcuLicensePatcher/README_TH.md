@@ -1,18 +1,29 @@
-# Experimental ECU License V2 patcher
+# ECU License Patcher — รุ่นทดลองแก้ปัญหาเปิดไม่ขึ้น
 
-**NOT VERIFIED FOR PRODUCTION. This tool does not contain ECU-Tuning-Solutions.exe.**
+อัปเดต: เปลี่ยน references ที่ inject ให้เป็น **mscorlib / System ของ .NET Framework** แทน .NET 8 เพื่อแก้สาเหตุที่อาจทำให้ EXE ที่ดัดแปลงเปิดไม่ขึ้น พร้อมเพิ่ม diagnostics ลงที่ `%TEMP%\JamesDev-ECU-V2-diagnostic.log`.
 
-This experimental tool modifies a COPY of the .NET Framework 4.8 launcher `EcuTuningCommunity.LicenseStore.HasValidLicense(string)` to call `License.Client.exe check`. It preserves the embedded ECU payload in the assembly but has not been tested to ensure the loader still functions. It does not rewrite `ActivationForm`: a V2 activation must be completed in License.Client *before* running the patched ECU application.
+## ขั้นตอนบน Windows VM ที่ไม่ต่อรถ
+1. ดาวน์โหลด Artifact `ECU-V2-Patcher-Experimental` จาก workflow ล่าสุด (อย่าใช้ Patcher EXE รุ่นเก่า)
+2. แตก ZIP และวางไฟล์ต้นฉบับ `ECU-Tuning-Solutions-1.02-community-v2.exe` ไว้ด้วย
+3. เปิด CMD ในโฟลเดอร์นั้น แล้วใช้คำสั่ง:
 
-## Usage on isolated Windows VM
+```bat
+EcuLicensePatcher.exe "ECU-Tuning-Solutions-1.02-community-v2.exe" "ECU-Tuning-V2-FIXED-TEST.exe"
+```
 
-1. Copy original community-v2 EXE to a clean VM. Keep pristine original and hash.
-2. Download patcher artifact from GitHub Actions.
-3. Run `EcuLicensePatcher.exe original.exe ECU-Tuning-V2-TEST.exe` from CMD.
-4. Copy `License.Client.exe` and `public.pem` to the **same folder as** `ECU-Tuning-V2-TEST.exe`.
-5. Run `License.Client.exe hwid`, issue ETS2 using a **separate** admin installation, and run `License.Client.exe activate <TOKEN>`.
-6. Run patched EXE only within the VM; check ActivationForm, embedded payload and ECU UI behavior. **Do not connect any vehicle.**
+4. วาง `License.Client.exe` และ `public.pem` ที่เป็นคู่ของคีย์ออก License ไว้ในโฟลเดอร์เดียวกับ EXE ตัวใหม่ (ไม่ใส่ private.pem ในโฟลเดอร์ลูกค้า)
+5. ตรวจสอบ `License.Client.exe check` ต้องขึ้น Valid
+6. ทดสอบเปิด `ECU-Tuning-V2-FIXED-TEST.exe` ภายใน VM เท่านั้น
+7. เปิด log โดยคำสั่ง:
 
-The patch is **fail-closed only when License.Client.exe exists and returns nonzero**; missing helper returns false. Application launch failures from Process.Start may still raise an exception rather than showing friendly UI. The original `ETS1` verifier remains in the binary and the original ActivationForm may still accept it; this proof of concept does **not** replace or fully migrate the entire licensing flow. For a complete migration, also update the activation form and remove legacy acceptance. The helper currently launches a console process with a hidden window; test display and startup behavior.
+```bat
+type "%TEMP%\JamesDev-ECU-V2-diagnostic.log"
+```
 
-Do not publish the original EXE, customer licenses or RSA private.pem in the GitHub repository. Inspect the original EXE for suspicious embedded components before running it.
+ถ้าไม่มี log หรือหน้าต่างไม่เปิด ให้บันทึกข้อความ Error จาก CMD, ข้อมูล Event Viewer (.NET Runtime / Application Error) และค่า SHA256 ของ original/patched เพื่อวิเคราะห์ต่อ
+
+## ข้อจำกัด
+- ยังไม่ผ่านการทดสอบว่าเปิดหน้าต่าง ECU และโหลด embedded payload ได้
+- เมธอด ActivationForm แบบ ETS1 ยังคงอยู่ โปรแกรมนี้เป็น proof of concept เท่านั้น ไม่ใช่การย้าย License ทั้งหมด
+- ห้ามนำไปเชื่อม ECU จริงก่อนตรวจสอบความปลอดภัยของไฟล์เดิมและทดสอบแยก
+- ห้ามอัปโหลด private.pem หรือ token ของลูกค้าขึ้น GitHub
