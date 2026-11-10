@@ -1,0 +1,23 @@
+{
+  "schema": "jamesdev.ecu.firmware-inspection.v1",
+  "firmwareId": "98170841",
+  "engine": "4JJ1",
+  "ecuSelection": "ISUZU_TRANSTRON_4JJ1",
+  "fileSizeBytes": 1048576,
+  "sha256": "906ae601ae4936ed23d9921a0dd39f52d67aaf791a80c945eedc769fd22c4f63",
+  "verifiedAscii": [
+    {"offsetHex":"0xEA9C4","text":"98170841"},
+    {"offsetHex":"0xEA9DC","text":"4JJ1"},
+    {"offsetHex":"0xEA9F4","text":"98170841"}
+  ],
+  "readOnly": true,
+  "solutions": {
+    "DPF": {"enabled": false, "reason":"No validated calibration address or safe patch definition"},
+    "EGR": {"enabled": false, "reason":"No validated calibration address or safe patch definition"},
+    "ADBLUE": {"enabled": false, "reason":"No validated calibration address or safe patch definition"},
+    "DTC": {"enabled": false, "reason":"No validated DTC table or mask schema"},
+    "IMMO": {"enabled": false, "reason":"No validated calibration address or safe patch definition"},
+    "LAMBDA": {"enabled": false, "reason":"No validated calibration address or safe patch definition"}
+  },
+  "notes": "Offsets refer only to observed ASCII identifier strings, NOT tuning/calibration maps. This JSON does not enable any ECU modifications; the existing ECU executable does not automatically consume it."
+}
